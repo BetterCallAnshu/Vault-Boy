@@ -1,0 +1,16 @@
+[build]
+target-dir = "target"
+
+[target.x86_64-pc-windows-msvc]
+# CFG (/guard:cf), ASLR, high-entropy VA and DEP. Verified post-build by
+# scripts/check-pe-mitigations.py.
+rustflags = [
+    "-C",
+    "control-flow-guard=yes",
+    "-C",
+    "link-arg=/DYNAMICBASE",
+    "-C",
+    "link-arg=/HIGHENTROPYVA",
+    "-C",
+    "link-arg=/NXCOMPAT",
+]

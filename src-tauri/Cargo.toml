@@ -1,0 +1,58 @@
+[package]
+name = "vaultly"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Vaultly - local-first Windows password manager"
+build = "build.rs"
+
+[lib]
+name = "vaultly_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7", features = [] }
+
+[dependencies]
+tauri = { version = "2.12", features = ["tray-icon", "image-png"] }
+tauri-plugin-dialog = "2.8"
+tauri-plugin-global-shortcut = "2.4"
+vaultly-core = { path = "../crates/vaultly-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+zeroize = { version = "1.8", features = ["derive"] }
+secrecy = "0.10"
+hmac = "0.12"
+sha2 = "0.10"
+getrandom = "0.3"
+uuid = { version = "1", features = ["v4", "serde"] }
+
+[dependencies.windows]
+version = "0.62"
+features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_Security_Authorization",
+  "Win32_Security_Cryptography",
+  "Win32_Storage_FileSystem",
+  "Win32_System_DataExchange",
+  "Win32_System_Diagnostics_Debug",
+  "Win32_System_ErrorReporting",
+  "Win32_System_LibraryLoader",
+  "Win32_System_Memory",
+  "Win32_System_Ole",
+  "Win32_System_SystemServices",
+  "Win32_System_WindowsProgramming",
+  "Win32_System_Pipes",
+  "Win32_System_Power",
+  "Win32_System_Registry",
+  "Win32_System_RemoteDesktop",
+  "Win32_System_SystemInformation",
+  "Win32_System_Threading",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_WindowsAndMessaging",
+]
+
+[dependencies.webview2-com]
+version = "0.39"

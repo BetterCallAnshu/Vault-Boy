@@ -1,0 +1,41 @@
+[package]
+name = "vaultly-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Vaultly vault format, cryptography and data model (no UI, no IO)"
+
+[dependencies]
+# Pinned to the API-stable, widely deployed RustCrypto lines. The 2026 majors
+# (argon2 0.6 / chacha20poly1305 0.11 / hkdf 0.13) changed APIs and are not yet
+# covered by the audit tooling we rely on; the pinned lines are the ones with
+# published audits and stable constant-time behaviour.
+argon2 = { version = "0.5.3", features = ["std"] }
+chacha20poly1305 = "0.10.1"
+hkdf = "0.12.4"
+sha2 = "0.10.9"
+subtle = "2.6.1"
+zeroize = { version = "1.8", features = ["derive", "alloc"] }
+secrecy = "0.10.3"
+
+# Randomness: getrandom is the OS CSPRNG (BCryptGenRandom on Windows).
+getrandom = "0.3.3"
+rand = "0.9"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+thiserror = "2"
+
+# Feature crates: reviewed, narrow scope.
+data-encoding = "2.9"
+fuzzy-matcher = "0.3.7"
+csv = "1.3"
+totp-rs = { version = "6.0", default-features = false, features = ["otpauth"] }
+
+[dev-dependencies]
+hex = "0.4"
+
+[lints.rust]
+unsafe_code = "forbid"

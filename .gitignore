@@ -1,0 +1,20 @@
+node_modules/
+dist/
+src-tauri/target/
+target/
+.toolchain/
+*.vlt
+*.vlt.bak
+*.vlt.tmp
+*.vault
+*.vault.bak
+# Local test/scratch vaults and lock state (normally under %LOCALAPPDATA%)
+lockout.dat
+device.key
+settings.json
+.env
+.env.*
+!.env.example
+*.log
+.vite/
+.DS_Store
