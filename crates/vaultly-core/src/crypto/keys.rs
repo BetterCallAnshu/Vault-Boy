@@ -144,4 +144,28 @@ mod tests {
         let key = Key32::from_bytes(raw);
         key.with_secret(|bytes| assert_eq!(bytes, &raw));
     }
+
+    /// A locker that always refuses, as Windows does when the working-set
+    /// quota is exhausted.
+    struct RefusingLocker;
+
+    impl PageLocker for RefusingLocker {
+        fn lock(&self, _page: &Page) -> bool {
+            false
+        }
+        fn unlock(&self, _page: &Page) {}
+    }
+
+    /// Documents the fail-open contract: a refused `VirtualLock` leaves the
+    /// key usable but honestly reports `is_locked() == false` — it never
+    /// claims protection it does not have, and it never panics.
+    #[test]
+    fn key_reports_unlocked_when_the_platform_locker_refuses() {
+        if install_page_locker(Box::new(RefusingLocker)).is_err() {
+            panic!("another test already installed a page locker");
+        }
+        let key = Key32::from_bytes([9u8; 32]);
+        assert!(!key.is_locked(), "a refusing locker must leave the key unlocked");
+        key.with_secret(|bytes| assert_eq!(bytes[0], 9, "key must stay usable"));
+    }
 }
