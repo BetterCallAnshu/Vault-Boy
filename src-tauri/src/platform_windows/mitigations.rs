@@ -14,9 +14,9 @@ use windows::Win32::System::SystemServices::{
     PROCESS_MITIGATION_STRICT_HANDLE_CHECK_POLICY,
 };
 use windows::Win32::System::Threading::{
-    SetProcessMitigationPolicy, ProcessDynamicCodePolicy, ProcessExtensionPointDisablePolicy,
-    ProcessImageLoadPolicy, ProcessSignaturePolicy, ProcessStrictHandleCheckPolicy,
-    PROCESS_MITIGATION_POLICY,
+    GetProcessMitigationPolicy, SetProcessMitigationPolicy, GetCurrentProcess,
+    ProcessDynamicCodePolicy, ProcessExtensionPointDisablePolicy, ProcessImageLoadPolicy,
+    ProcessSignaturePolicy, ProcessStrictHandleCheckPolicy, PROCESS_MITIGATION_POLICY,
 };
 
 /// Which mitigations the OS accepted for this process.
@@ -72,6 +72,69 @@ pub fn apply(include_signature_policy: bool) -> MitigationReport {
         // Bit 0: MicrosoftSignedOnly.
         signature.Anonymous.Flags = 0x1;
         report.signature_policy = set_policy(ProcessSignaturePolicy, &signature);
+    }
+
+    report
+}
+
+fn query_policy<T>(policy: PROCESS_MITIGATION_POLICY, value: &mut T) -> bool {
+    let size = std::mem::size_of::<T>();
+    // SAFETY: `value` is a live, correctly-sized buffer the API fills with
+    // `size` bytes; the current-process pseudo-handle is always valid and the
+    // policy enum selects the matching structure layout.
+    unsafe {
+        GetProcessMitigationPolicy(
+            GetCurrentProcess(),
+            policy,
+            value as *mut T as *mut c_void,
+            size,
+        )
+        .is_ok()
+    }
+}
+
+/// Read the **actual** process mitigation state back from the kernel.
+///
+/// `apply` only reports whether each `SetProcessMitigationPolicy` call was
+/// accepted; this re-queries the OS so callers (tests, diagnostics, the UI)
+/// verify a policy is really enforced rather than merely requested.
+pub fn read_back() -> MitigationReport {
+    let mut report = MitigationReport::default();
+
+    let mut dynamic = PROCESS_MITIGATION_DYNAMIC_CODE_POLICY::default();
+    if query_policy(ProcessDynamicCodePolicy, &mut dynamic) {
+        // SAFETY: `dynamic` is zero-initialized by `default()` and
+        // `query_policy` filled its full size above, so the union `Flags`
+        // member holds the dword the OS wrote.
+        report.dynamic_code_prohibited = unsafe { dynamic.Anonymous.Flags } & 0x1 != 0;
+    }
+
+    let mut strict = PROCESS_MITIGATION_STRICT_HANDLE_CHECK_POLICY::default();
+    if query_policy(ProcessStrictHandleCheckPolicy, &mut strict) {
+        // SAFETY: same as above — zero-initialized, then fully filled by the
+        // successful query before the union member is read.
+        report.strict_handles = unsafe { strict.Anonymous.Flags } & 0x1 != 0;
+    }
+
+    let mut extension = PROCESS_MITIGATION_EXTENSION_POINT_DISABLE_POLICY::default();
+    if query_policy(ProcessExtensionPointDisablePolicy, &mut extension) {
+        // SAFETY: zero-initialized structure, entirely overwritten by the
+        // successful `GetProcessMitigationPolicy` call before this read.
+        report.extension_points_disabled = unsafe { extension.Anonymous.Flags } & 0x1 != 0;
+    }
+
+    let mut images = PROCESS_MITIGATION_IMAGE_LOAD_POLICY::default();
+    if query_policy(ProcessImageLoadPolicy, &mut images) {
+        // SAFETY: zero-initialized structure, entirely overwritten by the
+        // successful `GetProcessMitigationPolicy` call before this read.
+        report.image_load_restricted = unsafe { images.Anonymous.Flags } & 0x3 != 0;
+    }
+
+    let mut signature = PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY::default();
+    if query_policy(ProcessSignaturePolicy, &mut signature) {
+        // SAFETY: zero-initialized structure, entirely overwritten by the
+        // successful `GetProcessMitigationPolicy` call before this read.
+        report.signature_policy = unsafe { signature.Anonymous.Flags } & 0x1 != 0;
     }
 
     report
