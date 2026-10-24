@@ -27,4 +27,21 @@
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
     </application>
   </compatibility>
+  <!--
+    Common Controls v6: vaultly.exe statically imports TaskDialogIndirect,
+    which only the v6 binding of comctl32.dll exports. Without this dependency
+    the loader binds the legacy v5 comctl32 and the process dies before main
+    with STATUS_ENTRYPOINT_NOT_FOUND (0xC0000139).
+  -->
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="*"
+        publicKeyToken="6595b64144ccf1df"
+        language="*" />
+    </dependentAssembly>
+  </dependency>
 </assembly>
