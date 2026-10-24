@@ -3,7 +3,7 @@ import {
   useId,
   useRef,
   type ButtonHTMLAttributes,
-  type InputHTMLAttributes,
+  type ComponentPropsWithRef,
   type ReactNode,
 } from "react";
 import { CloseIcon } from "./Icons";
@@ -43,7 +43,7 @@ export function TextInput({
   className = "",
   invalid,
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
+}: ComponentPropsWithRef<"input"> & { invalid?: boolean }) {
   return (
     <input
       className={`w-full rounded-lg border bg-white/80 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-vault-500 focus:outline-none dark:bg-black/25 dark:text-slate-100 dark:placeholder:text-slate-500 ${
@@ -127,7 +127,7 @@ export function Modal({
   width = "max-w-xl",
 }: {
   title: string;
-  description?: string;
+  description?: string | undefined;
   onClose: () => void;
   children: ReactNode;
   width?: string;

@@ -42,10 +42,7 @@ export function Vault({
   const [sort, setSort] = useState<Sort>("recent");
   const [editing, setEditing] = useState<EntryMeta | "new" | null>(null);
   const [showGenerator, setShowGenerator] = useState(false);
-  const [settings, setSettings] = useState(status.auto_lock_minutes ? null : null);
   const searchRef = useRef<HTMLInputElement>(null);
-
-  void settings;
 
   const refresh = useCallback(async () => {
     try {
@@ -377,7 +374,6 @@ export function Vault({
               <EntryDetail
                 key={selected.id}
                 entry={selected}
-                folders={folders}
                 onEdit={() => setEditing(selected)}
                 onChanged={() => void refresh()}
                 onCopied={notify}

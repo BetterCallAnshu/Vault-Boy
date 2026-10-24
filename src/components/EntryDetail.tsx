@@ -162,14 +162,12 @@ export function EntryDetail({
   onChanged,
   onCopied,
   onError,
-  folders,
 }: {
   entry: EntryMeta;
   onEdit: () => void;
   onChanged: () => void;
   onCopied: (message: string) => void;
   onError: (message: string) => void;
-  folders: string[];
 }) {
   const [history, setHistory] = useState<number[] | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
